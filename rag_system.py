@@ -36,20 +36,18 @@ def load_college_data():
 # --------------------------------
 
 def get_source_title(section):
-    """Extract a useful title from a college information section."""
+    """Get a readable title for each knowledge-base section."""
 
     lines = section.strip().splitlines()
 
     for line in lines:
         line = line.strip()
 
-        # Match headings such as '2. ADMISSIONS'
         match = re.match(r"^(\d+)\.\s*(.+)$", line)
 
         if match:
             return f"{match.group(1)}. {match.group(2).strip()}"
 
-    # Handle the document's main heading.
     if "COLLEGE INFORMATION" in section.upper():
         return "College Overview"
 
@@ -61,9 +59,20 @@ def get_source_title(section):
 # --------------------------------
 
 def split_into_chunks(text, chunk_size=120, overlap=30):
-    """Split college information into chunks with source titles."""
+    """Split text into overlapping chunks with source titles."""
 
-    # Split before numbered headings such as '1. GENERAL INFORMATION'
+    if not isinstance(text, str) or not text.strip():
+        return []
+
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be greater than zero.")
+
+    if overlap < 0 or overlap >= chunk_size:
+        raise ValueError(
+            "overlap must be zero or greater and smaller than chunk_size."
+        )
+
+    # Split before headings such as '1. GENERAL INFORMATION'
     sections = re.split(
         r"(?m)(?=^\d+\.\s+)",
         text.strip(),
@@ -105,7 +114,7 @@ def split_into_chunks(text, chunk_size=120, overlap=30):
 # --------------------------------
 
 def create_search_index(chunks):
-    """Create normalized embeddings and a FAISS index."""
+    """Create normalized embeddings and a FAISS similarity index."""
 
     if not chunks:
         raise ValueError(
@@ -132,16 +141,16 @@ def create_search_index(chunks):
 
 
 # --------------------------------
-# Search relevant college information
+# Search college information
 # --------------------------------
 
 def search_college_info(question, chunks, index, top_k=3):
-    """Return matching text, source title, and similarity score."""
+    """Return retrieved text, source titles, and similarity scores."""
 
     if not isinstance(question, str) or not question.strip():
         return []
 
-    if not chunks:
+    if not chunks or top_k <= 0:
         return []
 
     question_embedding = model.encode(
@@ -156,6 +165,7 @@ def search_college_info(question, chunks, index, top_k=3):
     )
 
     k = min(top_k, len(chunks))
+
     scores, indices = index.search(question_embedding, k)
 
     results = []

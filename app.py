@@ -41,9 +41,7 @@ if "theme" not in st.session_state:
 with st.sidebar:
     st.markdown("## 🎓 College Helpdesk")
     st.caption("Your college information assistant")
-
     st.divider()
-
     st.markdown("### 🎨 Appearance")
 
     selected_theme = st.radio(
@@ -61,7 +59,7 @@ with st.sidebar:
 
 
 # --------------------------------
-# Theme colors and custom CSS
+# Theme colors
 # --------------------------------
 
 if st.session_state.theme == "Dark":
@@ -88,29 +86,33 @@ else:
     HERO_END = "#2563EB"
 
 
+# --------------------------------
+# Custom CSS
+# --------------------------------
+
 st.markdown(
     f"""
     <style>
-    .stApp {{
-        background-color: {BG};
-        color: {TEXT};
-    }}
-
+    /* Main application background */
+    .stApp,
     .stApp [data-testid="stAppViewContainer"] {{
-        background-color: {BG};
+        background-color: {BG} !important;
+        color: {TEXT} !important;
     }}
 
     .main .block-container {{
         max-width: 1100px;
         padding-top: 2rem;
-        padding-bottom: 3rem;
+        padding-bottom: 5rem;
     }}
 
+    /* Header and toolbar */
     [data-testid="stHeader"],
     [data-testid="stToolbar"] {{
-        background-color: {BG};
+        background-color: {BG} !important;
     }}
 
+    /* General text */
     .stApp h1,
     .stApp h2,
     .stApp h3,
@@ -124,9 +126,10 @@ st.markdown(
 
     .stApp [data-testid="stCaptionContainer"] p,
     .stApp small {{
-        color: {MUTED};
+        color: {MUTED} !important;
     }}
 
+    /* Hero header */
     .hero {{
         background: linear-gradient(
             135deg,
@@ -159,9 +162,10 @@ st.markdown(
         margin-bottom: 12px;
     }}
 
+    /* Sidebar */
     section[data-testid="stSidebar"],
     section[data-testid="stSidebar"] > div {{
-        background-color: {SIDEBAR_BG};
+        background-color: {SIDEBAR_BG} !important;
     }}
 
     section[data-testid="stSidebar"] h1,
@@ -169,35 +173,68 @@ st.markdown(
     section[data-testid="stSidebar"] h3,
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] li {{
+    section[data-testid="stSidebar"] li,
+    section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
         color: {TEXT} !important;
     }}
 
+    /* Chat messages */
     [data-testid="stChatMessage"] {{
-        background-color: {SURFACE};
-        border: 1px solid {BORDER};
+        background-color: {SURFACE} !important;
+        border: 1px solid {BORDER} !important;
         border-radius: 14px;
         padding: 14px;
         margin-bottom: 12px;
     }}
 
-    [data-testid="stChatInput"] {{
-        background-color: {INPUT_BG};
-        border: 1px solid {BORDER};
-        border-radius: 14px;
+    /* FIX: bottom fixed chat area */
+    [data-testid="stBottom"],
+    [data-testid="stBottom"] > div {{
+        background-color: {BG} !important;
     }}
 
+    /* FIX: chat input outer container */
+    [data-testid="stChatInput"] {{
+        background-color: {INPUT_BG} !important;
+        border: 1px solid {BORDER} !important;
+        border-radius: 14px !important;
+        box-shadow: none !important;
+    }}
+
+    [data-testid="stChatInput"] > div {{
+        background-color: {INPUT_BG} !important;
+        border-radius: 14px !important;
+    }}
+
+    /* FIX: text field and typed text */
     [data-testid="stChatInput"] textarea {{
         color: {TEXT} !important;
+        -webkit-text-fill-color: {TEXT} !important;
         background-color: {INPUT_BG} !important;
-        caret-color: {ACCENT};
+        caret-color: {ACCENT} !important;
+        border: none !important;
+        box-shadow: none !important;
     }}
 
     [data-testid="stChatInput"] textarea::placeholder {{
         color: {MUTED} !important;
-        opacity: 1;
+        -webkit-text-fill-color: {MUTED} !important;
+        opacity: 1 !important;
     }}
 
+    /* FIX: send button */
+    [data-testid="stChatInput"] button {{
+        background-color: {INPUT_BG} !important;
+        color: {TEXT} !important;
+        border: none !important;
+    }}
+
+    [data-testid="stChatInput"] button svg {{
+        fill: {TEXT} !important;
+        color: {TEXT} !important;
+    }}
+
+    /* Other input fields */
     .stApp input,
     .stApp textarea {{
         color: {TEXT} !important;
@@ -205,10 +242,11 @@ st.markdown(
         border-color: {BORDER} !important;
     }}
 
+    /* Buttons */
     .stApp .stButton > button {{
-        background-color: {SURFACE};
+        background-color: {SURFACE} !important;
         color: {TEXT} !important;
-        border: 1px solid {BORDER};
+        border: 1px solid {BORDER} !important;
         border-radius: 10px;
         font-weight: 600;
         min-height: 42px;
@@ -216,18 +254,20 @@ st.markdown(
     }}
 
     .stApp .stButton > button:hover {{
-        border-color: {ACCENT};
+        border-color: {ACCENT} !important;
         color: {ACCENT} !important;
     }}
 
+    /* Radio buttons and checkboxes */
     .stApp [data-testid="stRadio"] label,
     .stApp [data-testid="stCheckbox"] label {{
         color: {TEXT} !important;
     }}
 
+    /* Expanders */
     [data-testid="stExpander"] {{
-        background-color: {SURFACE};
-        border: 1px solid {BORDER};
+        background-color: {SURFACE} !important;
+        border: 1px solid {BORDER} !important;
         border-radius: 12px;
     }}
 
@@ -235,31 +275,26 @@ st.markdown(
         color: {TEXT} !important;
     }}
 
+    /* Alerts */
     [data-testid="stAlert"] {{
-        background-color: {SURFACE};
-        color: {TEXT};
-        border: 1px solid {BORDER};
+        background-color: {SURFACE} !important;
+        color: {TEXT} !important;
+        border: 1px solid {BORDER} !important;
         border-radius: 10px;
     }}
 
-    .info-card {{
-        background-color: {SURFACE};
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid {BORDER};
-        margin-bottom: 10px;
-    }}
-
+    /* Horizontal lines */
     hr {{
         border-color: {BORDER} !important;
     }}
 
+    /* Footer */
     .footer {{
         text-align: center;
         color: {MUTED} !important;
         font-size: 13px;
         padding-top: 25px;
-        padding-bottom: 10px;
+        padding-bottom: 20px;
     }}
     </style>
     """,
@@ -301,36 +336,26 @@ def initialize_rag():
 try:
     chunks, index = initialize_rag()
 except Exception as error:
-    st.error(
-        f"Could not initialize the knowledge base: {error}"
-    )
+    st.error(f"Could not initialize the knowledge base: {error}")
     st.stop()
 
 
 # --------------------------------
-# Sidebar controls and information
+# Sidebar controls
 # --------------------------------
 
 with st.sidebar:
     st.divider()
-
     st.markdown("### 💬 Chat controls")
 
-    if st.button(
-        "🧹 Clear Chat",
-        use_container_width=True,
-        type="primary",
-    ):
+    if st.button("🧹 Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.session_state.pop("pending_question", None)
         st.rerun()
 
-    st.write(
-        f"**Messages:** {len(st.session_state.messages)}"
-    )
+    st.write(f"**Messages:** {len(st.session_state.messages)}")
 
     st.divider()
-
     st.markdown("### 📚 Topics you can ask about")
 
     st.markdown(
@@ -345,7 +370,6 @@ with st.sidebar:
     )
 
     st.divider()
-
     st.markdown("### ⚙️ Technology")
 
     st.markdown(
@@ -358,8 +382,8 @@ with st.sidebar:
     )
 
     st.info(
-        "This chatbot uses a sample college knowledge base. "
-        "Confirm important information with the college."
+        "This chatbot uses sample college information. "
+        "Confirm important details with the college."
     )
 
 
@@ -386,10 +410,10 @@ if not st.session_state.messages:
         "What is the highest package offered?",
     ]
 
-    suggestion_columns = st.columns(2)
+    columns = st.columns(2)
 
     for i, suggestion in enumerate(suggestions):
-        with suggestion_columns[i % 2]:
+        with columns[i % 2]:
             if st.button(
                 f"💡 {suggestion}",
                 key=f"suggestion_{i}",
@@ -400,18 +424,14 @@ if not st.session_state.messages:
 
 
 # --------------------------------
-# Normalize text safely
+# Normalize text
 # --------------------------------
 
 def normalize_text(text):
     if not isinstance(text, str):
         return ""
 
-    return re.sub(
-        r"[^\w\s]",
-        "",
-        text.lower(),
-    ).strip()
+    return re.sub(r"[^\w\s]", "", text.lower()).strip()
 
 
 # --------------------------------
@@ -424,12 +444,8 @@ def get_special_response(question):
 
     is_greeting = (
         normalized in {
-            "hi",
-            "hello",
-            "hey",
-            "good morning",
-            "good afternoon",
-            "good evening",
+            "hi", "hello", "hey",
+            "good morning", "good afternoon", "good evening",
         }
         or re.fullmatch(r"h+i+", normalized) is not None
         or re.fullmatch(r"h+e+y+", normalized) is not None
@@ -437,28 +453,21 @@ def get_special_response(question):
         or any(
             compact.startswith(greeting)
             for greeting in (
-                "goodmorning",
-                "goodafternoon",
-                "goodevening",
+                "goodmorning", "goodafternoon", "goodevening"
             )
         )
     )
 
     if is_greeting:
         return (
-            "Hello! 👋 Welcome to ABC Institute of Technology's "
-            "Helpdesk.\n\n"
+            "Hello! 👋 Welcome to ABC Institute of Technology's Helpdesk.\n\n"
             "How can I help you today? You can ask about admissions, "
             "departments, fees, hostel facilities, library, or placements."
         )
 
     if normalized in {
-        "thank you",
-        "thanks",
-        "thankyou",
-        "thanks a lot",
-        "thank you so much",
-        "thx",
+        "thank you", "thanks", "thankyou", "thanks a lot",
+        "thank you so much", "thx",
     }:
         return (
             "You're welcome! 😊 I'm happy to help. "
@@ -466,24 +475,104 @@ def get_special_response(question):
         )
 
     if normalized in {
-        "bye",
-        "goodbye",
-        "see you",
-        "see you later",
-        "take care",
+        "bye", "goodbye", "see you", "see you later", "take care",
     }:
         return (
             "Goodbye! 👋 Thank you for using the College Helpdesk. "
             "Have a great day!"
         )
 
-    if normalized in {
-        "how are you",
-        "how are you doing",
-    }:
+    if normalized in {"how are you", "how are you doing"}:
         return (
             "I'm doing well, thank you! 😊 "
             "I'm here to help with your college-related questions."
+        )
+
+    return None
+
+
+# --------------------------------
+# Known-answer safeguards
+# --------------------------------
+
+def get_known_fact_response(question, college_text):
+    """
+    Answer specific questions only when the sample knowledge base
+    supports the relevant information.
+    """
+
+    q = normalize_text(question)
+    data = normalize_text(college_text)
+
+    # Working days and opening hours
+    asks_hours = any(term in q for term in [
+        "working days", "working hours", "opening hours",
+        "college timings", "college timing", "timings",
+        "what time does the college", "when does the college open",
+        "when does the college close",
+    ])
+
+    if asks_hours:
+        has_days = "monday" in data and "saturday" in data
+        has_hours = (
+        ("9am" in data or "9 am" in data)
+        and ("5pm" in data or "5 pm" in data)
+    )
+
+        if has_days and has_hours:
+            return (
+                "According to the current sample knowledge base, "
+                "the institute operates Monday through Saturday, "
+                "from 9:00 AM to 5:00 PM. Please confirm these timings "
+                "with the college before relying on them."
+            )
+
+    # Fees: never invent an amount
+    asks_fees = any(term in q for term in [
+        "fee", "fees", "tuition", "cost of admission",
+        "how much does", "how much is",
+    ])
+
+    if asks_fees:
+        return (
+            "The sample knowledge base does not specify exact fee "
+            "amounts. Fees may depend on the course and admission "
+            "category. Please contact the admissions office for the "
+            "current fee structure and any applicable scholarships."
+        )
+
+    # Hostel: availability must not be asserted without confirmation
+    asks_hostel = any(term in q for term in [
+        "hostel", "accommodation", "mess fee", "room allocation",
+    ])
+
+    if asks_hostel:
+        return (
+            "The current sample knowledge base does not confirm "
+            "hostel availability, room allocation, or accommodation "
+            "charges. Please contact the college administration to "
+            "confirm availability, fees, and hostel rules."
+        )
+
+    # Location: use only if it appears in the knowledge base
+    asks_location = any(term in q for term in [
+        "where is the college", "college location",
+        "where is the institute", "which city",
+        "where is abc institute",
+    ])
+
+    if asks_location:
+        if "hyderabad" in data and "telangana" in data:
+            return (
+                "The sample knowledge base lists the institute as "
+                "located in Hyderabad, Telangana, India. This is "
+                "sample information and should be verified with the "
+                "actual institution."
+            )
+
+        return (
+            "The college location has not been confirmed in the "
+            "current knowledge base."
         )
 
     return None
@@ -509,23 +598,20 @@ def is_placement_question(question):
         "company visits",
     ]
 
-    return any(
-        keyword in normalized
-        for keyword in keywords
-    )
+    return any(keyword in normalized for keyword in keywords)
 
 
 def placement_fallback():
     return (
-        "The current college knowledge base does not provide "
-        "verified salary package details or a confirmed list of "
-        "recruiting companies. Please contact the placement cell "
-        "for accurate information."
+        "The current college knowledge base does not provide verified "
+        "salary package details or a confirmed list of recruiting "
+        "companies. Please contact the placement cell for accurate "
+        "information."
     )
 
 
 # --------------------------------
-# Display previous chat messages
+# Display previous messages
 # --------------------------------
 
 for message in st.session_state.messages:
@@ -534,17 +620,12 @@ for message in st.session_state.messages:
 
 
 # --------------------------------
-# Chat input and suggested questions
+# Chat input
 # --------------------------------
 
-typed_question = st.chat_input(
-    "✍️ Ask anything about the college..."
-)
+typed_question = st.chat_input("✍️ Ask anything about the college...")
 
-question = st.session_state.pop(
-    "pending_question",
-    None,
-)
+question = st.session_state.pop("pending_question", None)
 
 if not question:
     question = typed_question
@@ -557,12 +638,10 @@ if not question:
 if question and question.strip():
     question = question.strip()
 
-    st.session_state.messages.append(
-        {
-            "role": "user",
-            "content": question,
-        }
-    )
+    st.session_state.messages.append({
+        "role": "user",
+        "content": question,
+    })
 
     with st.chat_message("user"):
         st.markdown(question)
@@ -571,6 +650,15 @@ if question and question.strip():
     best_result = None
     ai_used = False
     results = []
+
+    # Get college data for grounded known answers
+    college_text = load_college_data()
+
+    if answer is None:
+        answer = get_known_fact_response(question, college_text)
+
+    if answer is None and is_placement_question(question):
+        answer = placement_fallback()
 
     if answer is None:
         try:
@@ -584,16 +672,18 @@ if question and question.strip():
             if results:
                 best_result = results[0]
 
+            # Conservative threshold for general RAG questions
             if best_result and best_result["score"] >= 0.50:
                 relevant_chunks = [
-                    result["text"]
+                    (
+                        f"Source: {result.get('source', 'College Information')}\n"
+                        f"Information: {result['text']}"
+                    )
                     for result in results
                     if result["score"] >= 0.35
                 ]
 
-                relevant_context = "\n\n".join(
-                    relevant_chunks
-                )
+                relevant_context = "\n\n".join(relevant_chunks)
 
                 try:
                     answer = generate_answer(
@@ -614,73 +704,56 @@ if question and question.strip():
                         f"AI generation error: "
                         f"{type(error).__name__}: {error}"
                     )
-
                     answer = (
                         "Sorry, I'm having trouble generating a "
                         "response right now. Please try again."
                     )
-
             else:
-                if is_placement_question(question):
-                    answer = placement_fallback()
-                else:
-                    answer = (
-                        "Sorry, I couldn't find relevant information "
-                        "about that question in the college knowledge "
-                        "base. 😕\n\n"
-                        "Try asking about admissions, departments, "
-                        "fees, hostel facilities, library, or placements."
-                    )
+                answer = (
+                    "Sorry, I couldn't find sufficiently relevant "
+                    "information in the college knowledge base. 😕\n\n"
+                    "Try asking about admissions, departments, fees, "
+                    "hostel facilities, library, or placements."
+                )
 
         except Exception as error:
             print(
-                f"Retrieval error: "
-                f"{type(error).__name__}: {error}"
+                f"Retrieval error: {type(error).__name__}: {error}"
             )
-
             answer = (
                 "Sorry, I couldn't search the college information "
                 "right now. Please try again."
             )
 
     # --------------------------------
-    # Save and display assistant answer
+    # Save and display answer
     # --------------------------------
 
-    st.session_state.messages.append(
-        {
-            "role": "assistant",
-            "content": answer,
-        }
-    )
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": answer,
+    })
 
     with st.chat_message("assistant"):
         st.markdown(answer)
 
-        # Display retrieved source information
         if best_result is not None:
             with st.expander("🔍 View retrieval details"):
                 st.markdown("### 📚 Best matching source")
-
                 st.markdown(
-                    f"**Source:** {best_result.get('source', 'College Information')}"
+                    f"**Source:** "
+                    f"{best_result.get('source', 'College Information')}"
                 )
-
                 st.write(
-                    f"Similarity score: "
-                    f"{best_result['score']:.3f}"
+                    f"Similarity score: {best_result['score']:.3f}"
                 )
-
                 st.write(
-                    "Generative AI used: "
-                    f"{'Yes' if ai_used else 'No'}"
+                    f"Generative AI used: {'Yes' if ai_used else 'No'}"
                 )
-
                 st.caption(
                     f"Matching information: {best_result['text']}"
                 )
 
-                # Display other retrieved sources
                 if len(results) > 1:
                     st.divider()
                     st.markdown("### Other retrieved sources")
@@ -690,11 +763,9 @@ if question and question.strip():
                             f"**Source:** "
                             f"{result.get('source', 'College Information')}"
                         )
-
                         st.write(
                             f"Similarity score: {result['score']:.3f}"
                         )
-
                         st.caption(result["text"])
 
 
