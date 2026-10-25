@@ -1,0 +1,61 @@
+ABC INSTITUTE OF TECHNOLOGY — COLLEGE INFORMATION
+
+1. GENERAL INFORMATION
+College Name: ABC Institute of Technology
+Location: Hyderabad, Telangana, India
+Institution Type: Engineering and Technology Institute
+Working Days: Monday to Saturday
+Office Hours: 9:00 AM to 5:00 PM
+
+About the College:
+ABC Institute of Technology is a sample engineering and
+technology institute located in Hyderabad, Telangana, India.
+It includes undergraduate and postgraduate programs and
+sample engineering departments. The institute information
+in this file is for chatbot development and testing only.
+
+2. ADMISSIONS
+The institute offers undergraduate and postgraduate programs.
+Students should check the official admission notification for eligibility criteria, application dates, entrance examinations, and required documents.
+Required documents may include academic certificates, identification proof, photographs, and entrance examination results.
+
+3. DEPARTMENTS
+The sample undergraduate departments are:
+- Computer Science and Engineering (CSE)
+- Information Technology (IT)
+- Electronics and Communication Engineering (ECE)
+- Electrical and Electronics Engineering (EEE)
+- Mechanical Engineering (ME)
+- Civil Engineering (CE)
+
+4. FEES
+Tuition fees depend on the course and admission category.
+Students should contact the college admissions office for the latest fee structure.
+Scholarships and fee concessions may be available subject to eligibility and applicable rules.
+
+5. HOSTEL FACILITIES
+Hostel availability, room allocation, accommodation charges, and mess fees must be confirmed with the college administration.
+Students should contact the hostel office for current rules and availability.
+
+6. PLACEMENTS
+The placement cell helps students prepare for employment opportunities.
+Possible support includes resume preparation, aptitude training, coding practice, mock interviews, and campus recruitment activities.
+Company visits, placement statistics, and salary packages must be confirmed using official college information.
+Highest Package:
+The highest salary package has not been provided in the
+current college information. Students should contact the
+placement cell for verified placement statistics.
+Recruiting Companies:
+The list of companies visiting the institute has not been
+provided in the current college information.
+
+7. LIBRARY
+The sample college library provides academic learning resources and study space.
+Library timings, membership rules, and borrowing limits should be confirmed with the library staff.
+
+8. CONTACT INFORMATION
+For admissions, fees, hostel, and other administrative questions, students should contact the appropriate college office.
+Official phone number, email address, website, and office contact details have not yet been configured.
+
+IMPORTANT NOTE
+This is sample information for development and testing. It is not verified information about a real institution. Do not treat unspecified fees, contact details, admission dates, or placement statistics as confirmed facts.
