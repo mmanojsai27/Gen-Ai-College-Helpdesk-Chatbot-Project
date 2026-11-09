@@ -371,9 +371,9 @@ WhatsApp or website integration.
 
 👨‍💻 Developed By
 
-M Manoj Sai
-Jaswanth Ande 
-G 
+M Manoj Sai,
+Jaswanth Ande, 
+G Dinesh
 
 Python Full Stack Developer
 
