@@ -1,5 +1,7 @@
 
 import re
+from pathlib import Path
+
 import streamlit as st
 
 from rag_system import (
@@ -8,7 +10,8 @@ from rag_system import (
     create_search_index,
     search_college_info,
 )
-from ai_response import generate_answer
+
+from ai_response import generate_answer_stream
 
 
 # --------------------------------
@@ -39,9 +42,11 @@ if "theme" not in st.session_state:
 # --------------------------------
 
 with st.sidebar:
+
     st.markdown("## 🎓 College Helpdesk")
     st.caption("Your college information assistant")
     st.divider()
+
     st.markdown("### 🎨 Appearance")
 
     selected_theme = st.radio(
@@ -63,6 +68,7 @@ with st.sidebar:
 # --------------------------------
 
 if st.session_state.theme == "Dark":
+
     BG = "#0B1120"
     SURFACE = "#151F32"
     TEXT = "#F1F5F9"
@@ -73,7 +79,9 @@ if st.session_state.theme == "Dark":
     ACCENT = "#60A5FA"
     HERO_START = "#172554"
     HERO_END = "#1D4ED8"
+
 else:
+
     BG = "#F4F7FC"
     SURFACE = "#FFFFFF"
     TEXT = "#1E293B"
@@ -93,7 +101,6 @@ else:
 st.markdown(
     f"""
     <style>
-    /* Main application background */
     .stApp,
     .stApp [data-testid="stAppViewContainer"] {{
         background-color: {BG} !important;
@@ -106,13 +113,11 @@ st.markdown(
         padding-bottom: 5rem;
     }}
 
-    /* Header and toolbar */
     [data-testid="stHeader"],
     [data-testid="stToolbar"] {{
         background-color: {BG} !important;
     }}
 
-    /* General text */
     .stApp h1,
     .stApp h2,
     .stApp h3,
@@ -129,7 +134,6 @@ st.markdown(
         color: {MUTED} !important;
     }}
 
-    /* Hero header */
     .hero {{
         background: linear-gradient(
             135deg,
@@ -162,7 +166,6 @@ st.markdown(
         margin-bottom: 12px;
     }}
 
-    /* Sidebar */
     section[data-testid="stSidebar"],
     section[data-testid="stSidebar"] > div {{
         background-color: {SIDEBAR_BG} !important;
@@ -178,7 +181,6 @@ st.markdown(
         color: {TEXT} !important;
     }}
 
-    /* Chat messages */
     [data-testid="stChatMessage"] {{
         background-color: {SURFACE} !important;
         border: 1px solid {BORDER} !important;
@@ -187,13 +189,11 @@ st.markdown(
         margin-bottom: 12px;
     }}
 
-    /* FIX: bottom fixed chat area */
     [data-testid="stBottom"],
     [data-testid="stBottom"] > div {{
         background-color: {BG} !important;
     }}
 
-    /* FIX: chat input outer container */
     [data-testid="stChatInput"] {{
         background-color: {INPUT_BG} !important;
         border: 1px solid {BORDER} !important;
@@ -206,7 +206,6 @@ st.markdown(
         border-radius: 14px !important;
     }}
 
-    /* FIX: text field and typed text */
     [data-testid="stChatInput"] textarea {{
         color: {TEXT} !important;
         -webkit-text-fill-color: {TEXT} !important;
@@ -222,7 +221,6 @@ st.markdown(
         opacity: 1 !important;
     }}
 
-    /* FIX: send button */
     [data-testid="stChatInput"] button {{
         background-color: {INPUT_BG} !important;
         color: {TEXT} !important;
@@ -234,7 +232,6 @@ st.markdown(
         color: {TEXT} !important;
     }}
 
-    /* Other input fields */
     .stApp input,
     .stApp textarea {{
         color: {TEXT} !important;
@@ -242,7 +239,6 @@ st.markdown(
         border-color: {BORDER} !important;
     }}
 
-    /* Buttons */
     .stApp .stButton > button {{
         background-color: {SURFACE} !important;
         color: {TEXT} !important;
@@ -258,13 +254,11 @@ st.markdown(
         color: {ACCENT} !important;
     }}
 
-    /* Radio buttons and checkboxes */
     .stApp [data-testid="stRadio"] label,
     .stApp [data-testid="stCheckbox"] label {{
         color: {TEXT} !important;
     }}
 
-    /* Expanders */
     [data-testid="stExpander"] {{
         background-color: {SURFACE} !important;
         border: 1px solid {BORDER} !important;
@@ -275,7 +269,6 @@ st.markdown(
         color: {TEXT} !important;
     }}
 
-    /* Alerts */
     [data-testid="stAlert"] {{
         background-color: {SURFACE} !important;
         color: {TEXT} !important;
@@ -283,12 +276,10 @@ st.markdown(
         border-radius: 10px;
     }}
 
-    /* Horizontal lines */
     hr {{
         border-color: {BORDER} !important;
     }}
 
-    /* Footer */
     .footer {{
         text-align: center;
         color: {MUTED} !important;
@@ -322,21 +313,62 @@ st.markdown(
 
 
 # --------------------------------
-# Initialize RAG system
+# Knowledge-base file detection
 # --------------------------------
 
+def get_knowledge_base_signature():
+
+    data_dir = Path(__file__).parent / "data"
+
+    files = [data_dir / "college_info.txt"]
+    files.extend(data_dir.glob("*.pdf"))
+
+    signature = tuple(
+        (
+            file.name,
+            file.stat().st_size,
+            file.stat().st_mtime_ns,
+        )
+        for file in sorted(
+            files,
+            key=lambda item: item.name.lower(),
+        )
+        if file.is_file()
+    )
+
+    return signature
+
+
 @st.cache_resource
-def initialize_rag():
+def initialize_rag(file_signature):
+
     college_text = load_college_data()
+
     chunks = split_into_chunks(college_text)
+
+    if not chunks:
+        raise ValueError(
+            "No college information was found. "
+            "Please add content to the TXT or PDF files in the data folder."
+        )
+
     index = create_search_index(chunks)
+
     return chunks, index
 
 
 try:
-    chunks, index = initialize_rag()
+
+    file_signature = get_knowledge_base_signature()
+
+    chunks, index = initialize_rag(file_signature)
+
 except Exception as error:
-    st.error(f"Could not initialize the knowledge base: {error}")
+
+    st.error(
+        f"Could not initialize the knowledge base: {error}"
+    )
+
     st.stop()
 
 
@@ -345,17 +377,31 @@ except Exception as error:
 # --------------------------------
 
 with st.sidebar:
+
     st.divider()
+
     st.markdown("### 💬 Chat controls")
 
-    if st.button("🧹 Clear Chat", use_container_width=True):
+    if st.button(
+        "🧹 Clear Chat",
+        use_container_width=True,
+    ):
+
         st.session_state.messages = []
-        st.session_state.pop("pending_question", None)
+
+        st.session_state.pop(
+            "pending_question",
+            None,
+        )
+
         st.rerun()
 
-    st.write(f"**Messages:** {len(st.session_state.messages)}")
+    st.write(
+        f"**Messages:** {len(st.session_state.messages)}"
+    )
 
     st.divider()
+
     st.markdown("### 📚 Topics you can ask about")
 
     st.markdown(
@@ -370,6 +416,7 @@ with st.sidebar:
     )
 
     st.divider()
+
     st.markdown("### ⚙️ Technology")
 
     st.markdown(
@@ -392,6 +439,7 @@ with st.sidebar:
 # --------------------------------
 
 if not st.session_state.messages:
+
     st.markdown(
         '<div class="section-heading">'
         '👋 Welcome! How can I help?</div>',
@@ -413,13 +461,17 @@ if not st.session_state.messages:
     columns = st.columns(2)
 
     for i, suggestion in enumerate(suggestions):
+
         with columns[i % 2]:
+
             if st.button(
                 f"💡 {suggestion}",
                 key=f"suggestion_{i}",
                 use_container_width=True,
             ):
+
                 st.session_state.pending_question = suggestion
+
                 st.rerun()
 
 
@@ -428,10 +480,197 @@ if not st.session_state.messages:
 # --------------------------------
 
 def normalize_text(text):
+
     if not isinstance(text, str):
         return ""
 
-    return re.sub(r"[^\w\s]", "", text.lower()).strip()
+    return re.sub(
+        r"[^\w\s]",
+        "",
+        text.lower(),
+    ).strip()
+
+
+# --------------------------------
+# Greeting detection
+# --------------------------------
+
+def get_greeting_prefix(question):
+
+    pattern = (
+        r"^\s*(good morning|good afternoon|good evening|hello|hi|hey)"
+        r"\b[\s,!.?]*"
+    )
+
+    match = re.match(
+        pattern,
+        question.strip(),
+        flags=re.IGNORECASE,
+    )
+
+    if not match:
+        return ""
+
+    greeting = match.group(1).lower()
+
+    greeting_responses = {
+        "good morning": "Good morning! 😊",
+        "good afternoon": "Good afternoon! 😊",
+        "good evening": "Good evening! 😊",
+        "hello": "Hello! 👋",
+        "hi": "Hi! 👋",
+        "hey": "Hey! 👋",
+    }
+
+    return greeting_responses.get(greeting, "")
+
+
+def remove_greeting_prefix(question):
+
+    pattern = (
+        r"^\s*(good morning|good afternoon|good evening|hello|hi|hey)"
+        r"\b[\s,!.?]*"
+    )
+
+    cleaned = re.sub(
+        pattern,
+        "",
+        question.strip(),
+        count=1,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    return cleaned if cleaned else question
+
+
+# --------------------------------
+# Conversation-aware follow-up support
+# --------------------------------
+
+def get_previous_conversation():
+
+    messages = st.session_state.messages
+
+    previous_user = None
+    previous_assistant = None
+
+    for message in reversed(messages):
+
+        if (
+            message["role"] == "assistant"
+            and previous_assistant is None
+        ):
+
+            previous_assistant = message["content"]
+
+        elif (
+            message["role"] == "user"
+            and previous_assistant is not None
+        ):
+
+            previous_user = message["content"]
+            break
+
+    if previous_user and previous_assistant:
+        return previous_user, previous_assistant
+
+    return None, None
+
+
+def is_follow_up_question(question):
+
+    normalized = normalize_text(question)
+
+    follow_up_patterns = [
+        r"\bwhat about\b",
+        r"\bwhat documents\b",
+        r"\bwhich documents\b",
+        r"\bhow about\b",
+        r"\bfor that\b",
+        r"\babout that\b",
+        r"\bwhat are the fees\b",
+        r"\bwhat are the charges\b",
+        r"\bwhat about the charges\b",
+        r"\bhostel charges\b",
+        r"\baccommodation charges\b",
+        r"\bmess fees\b",
+        r"\bcharges\b",
+        r"\bhow much\b",
+        r"\bthere\b",
+        r"\bit\b",
+        r"\bthat\b",
+        r"\bthose\b",
+        r"\bthem\b",
+        r"\bmore details\b",
+        r"\btell me more\b",
+    ]
+
+    return any(
+        re.search(pattern, normalized)
+        for pattern in follow_up_patterns
+    )
+
+
+def build_contextual_question(
+    question,
+    previous_user=None,
+    previous_assistant=None,
+):
+
+    if not (
+        previous_user
+        and previous_assistant
+        and is_follow_up_question(question)
+    ):
+        return question
+
+    previous_topic = normalize_text(previous_user)
+    current_question = normalize_text(question)
+
+    if (
+        "hostel" in previous_topic
+        or "accommodation" in previous_topic
+    ):
+
+        if any(
+            word in current_question
+            for word in [
+                "charge",
+                "fee",
+                "fees",
+                "much",
+                "cost",
+                "price",
+            ]
+        ):
+
+            return (
+                "hostel accommodation charges fees "
+                "hostel room rent mess fees "
+                + question
+            )
+
+        return (
+            f"hostel accommodation {previous_user} {question}"
+        )
+
+    if (
+        "admission" in previous_topic
+        or "apply" in previous_topic
+    ):
+
+        if (
+            "document" in current_question
+            or "certificate" in current_question
+        ):
+
+            return (
+                "admission application required documents "
+                "academic certificates identity proof "
+                + question
+            )
+
+    return f"{previous_user} {question}"
 
 
 # --------------------------------
@@ -439,140 +678,69 @@ def normalize_text(text):
 # --------------------------------
 
 def get_special_response(question):
+
     normalized = normalize_text(question)
-    compact = normalized.replace(" ", "")
 
-    is_greeting = (
-        normalized in {
-            "hi", "hello", "hey",
-            "good morning", "good afternoon", "good evening",
-        }
-        or re.fullmatch(r"h+i+", normalized) is not None
-        or re.fullmatch(r"h+e+y+", normalized) is not None
-        or re.fullmatch(r"h+e+l+o+", normalized) is not None
-        or any(
-            compact.startswith(greeting)
-            for greeting in (
-                "goodmorning", "goodafternoon", "goodevening"
-            )
-        )
-    )
+    greeting_messages = {
+        "hi",
+        "hello",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening",
+    }
 
-    if is_greeting:
+    if (
+        normalized in greeting_messages
+        or re.fullmatch(r"h+i+", normalized)
+        or re.fullmatch(r"h+e+y+", normalized)
+        or re.fullmatch(r"h+e+l+o+", normalized)
+    ):
+
+        greeting = get_greeting_prefix(question) or "Hello! 👋"
+
         return (
-            "Hello! 👋 Welcome to ABC Institute of Technology's Helpdesk.\n\n"
+            f"{greeting} Welcome to ABC Institute of Technology's "
+            "Helpdesk.\n\n"
             "How can I help you today? You can ask about admissions, "
             "departments, fees, hostel facilities, library, or placements."
         )
 
     if normalized in {
-        "thank you", "thanks", "thankyou", "thanks a lot",
-        "thank you so much", "thx",
+        "thank you",
+        "thanks",
+        "thankyou",
+        "thanks a lot",
+        "thank you so much",
+        "thx",
     }:
+
         return (
             "You're welcome! 😊 I'm happy to help. "
             "Feel free to ask another college-related question."
         )
 
     if normalized in {
-        "bye", "goodbye", "see you", "see you later", "take care",
+        "bye",
+        "goodbye",
+        "see you",
+        "see you later",
+        "take care",
     }:
+
         return (
             "Goodbye! 👋 Thank you for using the College Helpdesk. "
             "Have a great day!"
         )
 
-    if normalized in {"how are you", "how are you doing"}:
+    if normalized in {
+        "how are you",
+        "how are you doing",
+    }:
+
         return (
             "I'm doing well, thank you! 😊 "
             "I'm here to help with your college-related questions."
-        )
-
-    return None
-
-
-# --------------------------------
-# Known-answer safeguards
-# --------------------------------
-
-def get_known_fact_response(question, college_text):
-    """
-    Answer specific questions only when the sample knowledge base
-    supports the relevant information.
-    """
-
-    q = normalize_text(question)
-    data = normalize_text(college_text)
-
-    # Working days and opening hours
-    asks_hours = any(term in q for term in [
-        "working days", "working hours", "opening hours",
-        "college timings", "college timing", "timings",
-        "what time does the college", "when does the college open",
-        "when does the college close",
-    ])
-
-    if asks_hours:
-        has_days = "monday" in data and "saturday" in data
-        has_hours = (
-        ("9am" in data or "9 am" in data)
-        and ("5pm" in data or "5 pm" in data)
-    )
-
-        if has_days and has_hours:
-            return (
-                "According to the current sample knowledge base, "
-                "the institute operates Monday through Saturday, "
-                "from 9:00 AM to 5:00 PM. Please confirm these timings "
-                "with the college before relying on them."
-            )
-
-    # Fees: never invent an amount
-    asks_fees = any(term in q for term in [
-        "fee", "fees", "tuition", "cost of admission",
-        "how much does", "how much is",
-    ])
-
-    if asks_fees:
-        return (
-            "The sample knowledge base does not specify exact fee "
-            "amounts. Fees may depend on the course and admission "
-            "category. Please contact the admissions office for the "
-            "current fee structure and any applicable scholarships."
-        )
-
-    # Hostel: availability must not be asserted without confirmation
-    asks_hostel = any(term in q for term in [
-        "hostel", "accommodation", "mess fee", "room allocation",
-    ])
-
-    if asks_hostel:
-        return (
-            "The current sample knowledge base does not confirm "
-            "hostel availability, room allocation, or accommodation "
-            "charges. Please contact the college administration to "
-            "confirm availability, fees, and hostel rules."
-        )
-
-    # Location: use only if it appears in the knowledge base
-    asks_location = any(term in q for term in [
-        "where is the college", "college location",
-        "where is the institute", "which city",
-        "where is abc institute",
-    ])
-
-    if asks_location:
-        if "hyderabad" in data and "telangana" in data:
-            return (
-                "The sample knowledge base lists the institute as "
-                "located in Hyderabad, Telangana, India. This is "
-                "sample information and should be verified with the "
-                "actual institution."
-            )
-
-        return (
-            "The college location has not been confirmed in the "
-            "current knowledge base."
         )
 
     return None
@@ -583,6 +751,7 @@ def get_known_fact_response(question, college_text):
 # --------------------------------
 
 def is_placement_question(question):
+
     normalized = normalize_text(question)
 
     keywords = [
@@ -598,10 +767,14 @@ def is_placement_question(question):
         "company visits",
     ]
 
-    return any(keyword in normalized for keyword in keywords)
+    return any(
+        keyword in normalized
+        for keyword in keywords
+    )
 
 
 def placement_fallback():
+
     return (
         "The current college knowledge base does not provide verified "
         "salary package details or a confirmed list of recruiting "
@@ -611,21 +784,128 @@ def placement_fallback():
 
 
 # --------------------------------
+# Retrieval configuration
+# --------------------------------
+
+SIMILARITY_THRESHOLD = 0.35
+
+MAX_RETRIEVED_CHUNKS = 3
+
+
+# --------------------------------
+# Detect API error responses
+# --------------------------------
+
+def is_ai_error_response(answer):
+
+    if not isinstance(answer, str) or not answer.strip():
+        return True
+
+    error_prefixes = (
+        "Groq authentication failed.",
+        "Groq API configuration is missing.",
+        "The AI service has reached its request limit.",
+        "The AI model configuration or request may be incorrect.",
+        "The AI service is temporarily unavailable.",
+        "I'm temporarily unable to generate an answer.",
+        "Sorry, I couldn't generate an answer",
+        "Please enter a valid question.",
+        "Please provide the college information context.",
+    )
+
+    return answer.strip().startswith(error_prefixes)
+
+
+# --------------------------------
+# Display saved retrieval sources
+# --------------------------------
+
+def display_retrieval_details(message):
+
+    sources = message.get("sources", [])
+
+    if not sources:
+        return
+
+    with st.expander("🔍 View retrieval details"):
+
+        st.markdown("### 📚 Best matching source")
+
+        best_source = sources[0]
+
+        st.markdown(
+            f"**Source:** "
+            f"{best_source.get('source', 'College Information')}"
+        )
+
+        if best_source.get("page") is not None:
+            st.write(f"**Page:** {best_source['page']}")
+
+        st.write(
+            f"Similarity score: "
+            f"{best_source.get('score', 0):.3f}"
+        )
+
+        st.write(
+            "Generative AI used: "
+            f"{'Yes' if message.get('ai_used', False) else 'No'}"
+        )
+
+        st.caption(
+            f"Matching information: "
+            f"{best_source.get('text', '')}"
+        )
+
+        if len(sources) > 1:
+
+            st.divider()
+
+            st.markdown("### Other retrieved sources")
+
+            for source in sources[1:]:
+
+                st.markdown(
+                    f"**Source:** "
+                    f"{source.get('source', 'College Information')}"
+                )
+
+                if source.get("page") is not None:
+                    st.write(f"**Page:** {source['page']}")
+
+                st.write(
+                    f"Similarity score: "
+                    f"{source.get('score', 0):.3f}"
+                )
+
+                st.caption(source.get("text", ""))
+
+
+# --------------------------------
 # Display previous messages
 # --------------------------------
 
 for message in st.session_state.messages:
+
     with st.chat_message(message["role"]):
+
         st.markdown(message["content"])
+
+        if message["role"] == "assistant":
+            display_retrieval_details(message)
 
 
 # --------------------------------
 # Chat input
 # --------------------------------
 
-typed_question = st.chat_input("✍️ Ask anything about the college...")
+typed_question = st.chat_input(
+    "✍️ Ask anything about the college..."
+)
 
-question = st.session_state.pop("pending_question", None)
+question = st.session_state.pop(
+    "pending_question",
+    None,
+)
 
 if not question:
     question = typed_question
@@ -636,7 +916,17 @@ if not question:
 # --------------------------------
 
 if question and question.strip():
+
     question = question.strip()
+
+    # Capture previous conversation BEFORE appending
+    # the current user question.
+
+    previous_user, previous_assistant = (
+        get_previous_conversation()
+    )
+
+    # Save and display user question.
 
     st.session_state.messages.append({
         "role": "user",
@@ -646,127 +936,273 @@ if question and question.strip():
     with st.chat_message("user"):
         st.markdown(question)
 
+    # Detect greeting separately.
+
+    greeting_prefix = get_greeting_prefix(question)
+
+    # Get special response.
+
     answer = get_special_response(question)
-    best_result = None
+
     ai_used = False
+    streamed_in_ui = False
+
     results = []
+    relevant_results = []
 
-    # Get college data for grounded known answers
-    college_text = load_college_data()
+    # Remove greeting only for retrieval.
+
+    search_question = remove_greeting_prefix(question)
+
+    # Build contextual retrieval question.
+
+    contextual_question = build_contextual_question(
+        search_question,
+        previous_user,
+        previous_assistant,
+    )
+
+    # --------------------------------
+    # Retrieval-first processing
+    # --------------------------------
 
     if answer is None:
-        answer = get_known_fact_response(question, college_text)
 
-    if answer is None and is_placement_question(question):
-        answer = placement_fallback()
-
-    if answer is None:
         try:
+
             results = search_college_info(
-                question,
+                contextual_question,
                 chunks,
                 index,
-                top_k=3,
+                top_k=5,
             )
 
-            if results:
-                best_result = results[0]
+            relevant_results = [
+                result
+                for result in results
+                if (
+                    result.get("score", 0)
+                    >= SIMILARITY_THRESHOLD
+                    or result.get("direct_match", False)
+                )
+            ][:MAX_RETRIEVED_CHUNKS]
 
-            # Conservative threshold for general RAG questions
-            if best_result and best_result["score"] >= 0.50:
-                relevant_chunks = [
-                    (
-                        f"Source: {result.get('source', 'College Information')}\n"
-                        f"Information: {result['text']}"
+            if relevant_results:
+
+                relevant_chunks = []
+
+                for result in relevant_results:
+
+                    source_text = (
+                        f"Source: "
+                        f"{result.get('source', 'College Information')}\n"
                     )
-                    for result in results
-                    if result["score"] >= 0.35
-                ]
 
-                relevant_context = "\n\n".join(relevant_chunks)
+                    if result.get("page") is not None:
+                        source_text += (
+                            f"Page: {result['page']}\n"
+                        )
+
+                    source_text += (
+                        f"Information: "
+                        f"{result.get('text', '')}"
+                    )
+
+                    relevant_chunks.append(source_text)
+
+                relevant_context = "\n\n".join(
+                    relevant_chunks
+                )
+
+                # Include previous conversation.
+
+                conversation_context = ""
+
+                if (
+                    previous_user
+                    and previous_assistant
+                    and is_follow_up_question(search_question)
+                ):
+
+                    conversation_context = (
+                        "\n\nPrevious conversation:\n"
+                        f"User asked: {previous_user}\n"
+                        f"Assistant answered: "
+                        f"{previous_assistant[:800]}\n"
+                        "Use this previous topic to understand "
+                        "the current follow-up question. "
+                        "Answer only from the retrieved college "
+                        "information below.\n"
+                    )
+
+                # --------------------------------
+                # Generate grounded streaming answer
+                # --------------------------------
 
                 try:
-                    answer = generate_answer(
-                        question=question,
-                        context=relevant_context,
-                    )
 
-                    if answer and answer.strip():
-                        ai_used = True
-                    else:
+                    with st.chat_message("assistant"):
+
+                        if greeting_prefix:
+                            st.markdown(greeting_prefix)
+
+                        streamed_answer = st.write_stream(
+                            generate_answer_stream(
+                                question=search_question,
+                                context=(
+                                    conversation_context
+                                    + relevant_context
+                                ),
+                            ),
+                            cursor="▌",
+                        )
+
+                    streamed_in_ui = True
+
+                    if (
+                        not isinstance(streamed_answer, str)
+                        or not streamed_answer.strip()
+                    ):
+
                         answer = (
-                            "Sorry, I couldn't generate an answer. "
-                            "Please try asking in a different way."
+                            "Sorry, I couldn't generate an answer "
+                            "from the available college information. "
+                            "Please try asking differently."
+                        )
+
+                        ai_used = False
+
+                    else:
+
+                        if greeting_prefix:
+
+                            answer = (
+                                greeting_prefix
+                                + "\n\n"
+                                + streamed_answer
+                            )
+
+                        else:
+
+                            answer = streamed_answer
+
+                        ai_used = not is_ai_error_response(
+                            streamed_answer
                         )
 
                 except Exception as error:
+
                     print(
                         f"AI generation error: "
                         f"{type(error).__name__}: {error}"
                     )
+
                     answer = (
                         "Sorry, I'm having trouble generating a "
                         "response right now. Please try again."
                     )
+
+                    if greeting_prefix:
+                        answer = greeting_prefix + "\n\n" + answer
+
+                    ai_used = False
+                    streamed_in_ui = False
+
             else:
-                answer = (
-                    "Sorry, I couldn't find sufficiently relevant "
-                    "information in the college knowledge base. 😕\n\n"
-                    "Try asking about admissions, departments, fees, "
-                    "hostel facilities, library, or placements."
-                )
+
+                # --------------------------------
+                # Fallback after retrieval fails
+                # --------------------------------
+
+                if is_placement_question(search_question):
+
+                    answer = placement_fallback()
+
+                else:
+
+                    answer = (
+                        "Sorry, I couldn't find sufficiently relevant "
+                        "information in the college knowledge base. 😕\n\n"
+                        "Please try asking about admissions, departments, "
+                        "fees, hostel facilities, library, or placements."
+                    )
+
+                if greeting_prefix:
+                    answer = greeting_prefix + "\n\n" + answer
 
         except Exception as error:
+
             print(
-                f"Retrieval error: {type(error).__name__}: {error}"
+                f"Retrieval error: "
+                f"{type(error).__name__}: {error}"
             )
+
             answer = (
                 "Sorry, I couldn't search the college information "
                 "right now. Please try again."
             )
 
+            if greeting_prefix:
+                answer = greeting_prefix + "\n\n" + answer
+
+            ai_used = False
+            streamed_in_ui = False
+
     # --------------------------------
-    # Save and display answer
+    # Save source information
     # --------------------------------
 
-    st.session_state.messages.append({
+    saved_sources = [
+        {
+            "source": result.get(
+                "source",
+                "College Information",
+            ),
+            "page": result.get("page"),
+            "score": float(
+                result.get("score", 0)
+            ),
+            "text": result.get("text", ""),
+        }
+        for result in relevant_results
+    ]
+
+    # --------------------------------
+    # Save assistant message
+    # --------------------------------
+
+    assistant_message = {
         "role": "assistant",
         "content": answer,
-    })
+        "sources": saved_sources,
+        "ai_used": ai_used,
+    }
 
-    with st.chat_message("assistant"):
-        st.markdown(answer)
+    st.session_state.messages.append(
+        assistant_message
+    )
 
-        if best_result is not None:
-            with st.expander("🔍 View retrieval details"):
-                st.markdown("### 📚 Best matching source")
-                st.markdown(
-                    f"**Source:** "
-                    f"{best_result.get('source', 'College Information')}"
-                )
-                st.write(
-                    f"Similarity score: {best_result['score']:.3f}"
-                )
-                st.write(
-                    f"Generative AI used: {'Yes' if ai_used else 'No'}"
-                )
-                st.caption(
-                    f"Matching information: {best_result['text']}"
-                )
+    # --------------------------------
+    # Display answer and sources
+    # --------------------------------
 
-                if len(results) > 1:
-                    st.divider()
-                    st.markdown("### Other retrieved sources")
+    if streamed_in_ui:
 
-                    for result in results[1:]:
-                        st.markdown(
-                            f"**Source:** "
-                            f"{result.get('source', 'College Information')}"
-                        )
-                        st.write(
-                            f"Similarity score: {result['score']:.3f}"
-                        )
-                        st.caption(result["text"])
+        with st.chat_message("assistant"):
+
+            display_retrieval_details(
+                assistant_message
+            )
+
+    else:
+
+        with st.chat_message("assistant"):
+
+            st.markdown(answer)
+
+            display_retrieval_details(
+                assistant_message
+            )
 
 
 # --------------------------------

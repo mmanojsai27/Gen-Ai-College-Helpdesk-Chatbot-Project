@@ -52,6 +52,7 @@ provided in the current college information.
 7. LIBRARY
 The sample college library provides academic learning resources and study space.
 Library timings, membership rules, and borrowing limits should be confirmed with the library staff.
+Library Test: The library reading room is open until 6 PM.
 
 8. CONTACT INFORMATION
 For admissions, fees, hostel, and other administrative questions, students should contact the appropriate college office.

@@ -1,6 +1,26 @@
 
-venv/
-__pycache__/
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Streamlit
 .streamlit/secrets.toml
-vectorstore/
+
+# Generated indexes and cache
+*.faiss
+*.index
+.cache/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
